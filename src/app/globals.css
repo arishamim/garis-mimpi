@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+:root {
+  --rich-sky: #2E51A2;
+  --vogue-blonde: #D4BFA2;
+  --shadow-rouge: #450213;
+  --crimson-chic: #6D001F;
+  --card: #F7F1E8;
+}
+
+body {
+  background: var(--vogue-blonde);
+  color: var(--shadow-rouge);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Utility classes tambahan jika perlu */
+.btn-primary {
+  background: var(--crimson-chic);
+  color: white;
+}

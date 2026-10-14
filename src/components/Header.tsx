@@ -26,52 +26,87 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-[#0D0D0D] border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-extrabold text-[#FF6B00] tracking-tight">
+      <header style={{
+        background: "#0D0D0D",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        padding: "1rem 0"
+      }}>
+        <div style={{
+          maxWidth: "1280px",
+          margin: "0 auto",
+          padding: "0 1.5rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
+          <Link href="/" style={{ fontSize: "1.5rem", fontWeight: 800, color: "#FF6B00", textDecoration: "none" }}>
             GARISMIMPI
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center bg-white/10 rounded-full p-1 text-sm">
-              <button onClick={() => setLang("id")} className={`px-3 py-1 rounded-full ${lang === "id" ? "bg-[#FF6B00] text-black" : "text-white/70"}`}>ID</button>
-              <button onClick={() => setLang("en")} className={`px-3 py-1 rounded-full ${lang === "en" ? "bg-[#FF6B00] text-black" : "text-white/70"}`}>EN</button>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ display: "flex", background: "rgba(255,255,255,0.1)", borderRadius: "9999px", padding: "4px" }}>
+              <button onClick={() => setLang("id")} style={{
+                padding: "6px 12px", borderRadius: "9999px", border: "none", cursor: "pointer",
+                background: lang === "id" ? "#FF6B00" : "transparent",
+                color: lang === "id" ? "#000" : "rgba(255,255,255,0.7)",
+                fontWeight: 600, fontSize: "0.875rem"
+              }}>ID</button>
+              <button onClick={() => setLang("en")} style={{
+                padding: "6px 12px", borderRadius: "9999px", border: "none", cursor: "pointer",
+                background: lang === "en" ? "#FF6B00" : "transparent",
+                color: lang === "en" ? "#000" : "rgba(255,255,255,0.7)",
+                fontWeight: 600, fontSize: "0.875rem"
+              }}>EN</button>
             </div>
 
             {loggedIn ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm hidden sm:inline">{userEmail?.split("@")[0]}</span>
-                <button onClick={logout} className="bg-[#FF6B00] text-black px-4 py-2 rounded-full text-sm font-semibold">
-                  {t.logout}
-                </button>
-              </div>
+              <button onClick={logout} style={{
+                background: "#FF6B00", color: "#000", padding: "8px 16px",
+                borderRadius: "9999px", border: "none", fontWeight: 600, cursor: "pointer"
+              }}>{t.logout}</button>
             ) : (
-              <button onClick={() => setShowLogin(true)} className="bg-[#FF6B00] text-black px-5 py-2 rounded-full text-sm font-semibold">
-                {t.login}
-              </button>
+              <button onClick={() => setShowLogin(true)} style={{
+                background: "#FF6B00", color: "#000", padding: "8px 20px",
+                borderRadius: "9999px", border: "none", fontWeight: 600, cursor: "pointer"
+              }}>{t.login}</button>
             )}
           </div>
         </div>
       </header>
 
       {showLogin && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={() => setShowLogin(false)}>
-          <div className="bg-[#1A1A1A] text-[#F5F0E8] p-6 rounded-2xl w-full max-w-sm mx-4 border border-white/10" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-1">{t.title}</h3>
-            <p className="text-sm text-white/60 mb-4">{t.desc}</p>
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100
+        }} onClick={() => setShowLogin(false)}>
+          <div style={{
+            background: "#1A1A1A", padding: "1.5rem", borderRadius: "1rem",
+            width: "100%", maxWidth: "380px", margin: "1rem", border: "1px solid rgba(255,255,255,0.1)"
+          }} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "0.5rem" }}>{t.title}</h3>
+            <p style={{ fontSize: "0.875rem", opacity: 0.6, marginBottom: "1rem" }}>{t.desc}</p>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@contoh.com"
-              className="w-full bg-white/5 border border-white/20 rounded-xl px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-[#FF6B00]"
+              style={{
+                width: "100%", padding: "0.75rem 1rem", borderRadius: "0.75rem",
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)",
+                color: "#F5F0E8", marginBottom: "0.75rem", boxSizing: "border-box"
+              }}
             />
-            <button onClick={handleLogin} className="w-full bg-[#FF6B00] text-black py-3 rounded-xl font-semibold mb-2">
-              {t.send}
-            </button>
-            <button onClick={() => setShowLogin(false)} className="w-full text-sm text-white/60 py-2">
-              {t.cancel}
-            </button>
+            <button onClick={handleLogin} style={{
+              width: "100%", background: "#FF6B00", color: "#000", padding: "0.75rem",
+              borderRadius: "0.75rem", border: "none", fontWeight: 600, cursor: "pointer", marginBottom: "0.5rem"
+            }}>{t.send}</button>
+            <button onClick={() => setShowLogin(false)} style={{
+              width: "100%", background: "transparent", color: "rgba(255,255,255,0.6)",
+              padding: "0.5rem", border: "none", cursor: "pointer"
+            }}>{t.cancel}</button>
           </div>
         </div>
       )}

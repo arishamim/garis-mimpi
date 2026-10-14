@@ -50,3 +50,9 @@ body {
   padding: 0.25rem 0.6rem;
   border-radius: 9999px;
 }
+
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}

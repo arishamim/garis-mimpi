@@ -5,8 +5,6 @@ import Link from "next/link";
 import { designers, foldersByDesigner, getFiles } from "@/data/mock";
 import { useApp } from "@/context/AppContext";
 
-export const dynamic = "force-dynamic";
-
 export default function FolderPage() {
   const params = useParams();
   const designerId = params.id as string;

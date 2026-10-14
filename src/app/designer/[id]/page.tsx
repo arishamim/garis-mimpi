@@ -5,6 +5,8 @@ import Link from "next/link";
 import { designers, foldersByDesigner } from "@/data/mock";
 import { useApp } from "@/context/AppContext";
 
+export const dynamic = "force-dynamic";
+
 export default function DesignerPage() {
   const params = useParams();
   const id = params.id as string;

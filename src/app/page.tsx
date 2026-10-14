@@ -24,11 +24,11 @@ export default function Home() {
         </h1>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {sorted.map((d) => (
-          <DesignerCard key={d.id} designer={d} />
-        ))}
-      </div>
+    <div className="designer-grid">
+  {sorted.map((d) => (
+    <DesignerCard key={d.id} designer={d} />
+  ))}
+</div>
     </div>
   );
 }

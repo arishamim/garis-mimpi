@@ -26,38 +26,53 @@ export default function Header() {
 
   return (
     <>
-      <header className="bg-[#2E51A2] text-white px-6 py-4 flex justify-between items-center sticky top-0 z-40 shadow">
-        <Link href="/" className="text-2xl font-bold tracking-tight">
-          Garis Mimpi
-        </Link>
-        <div className="flex items-center gap-5">
-          <div className="text-sm font-medium">
-            <button onClick={() => setLang("id")} className={lang === "id" ? "underline" : "opacity-70"}>
-              ID
-            </button>
-            <span className="mx-1">|</span>
-            <button onClick={() => setLang("en")} className={lang === "en" ? "underline" : "opacity-70"}>
-              EN
-            </button>
-          </div>
-          {loggedIn ? (
-            <div className="flex items-center gap-3">
-              <span className="text-sm">{userEmail?.split("@")[0]}</span>
-              <button onClick={logout} className="bg-[#6D001F] hover:bg-[#8a0028] px-3 py-1.5 rounded text-sm">
-                {t.logout}
+      <header className="bg-[#2E51A2] text-white sticky top-0 z-50 shadow-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-2xl font-bold tracking-tight hover:opacity-90 transition">
+            Garis Mimpi
+          </Link>
+
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center bg-white/10 rounded-full p-1 text-sm font-medium">
+              <button
+                onClick={() => setLang("id")}
+                className={`px-3 py-1 rounded-full transition ${lang === "id" ? "bg-white text-[#2E51A2]" : "text-white/80 hover:text-white"}`}
+              >
+                ID
+              </button>
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1 rounded-full transition ${lang === "en" ? "bg-white text-[#2E51A2]" : "text-white/80 hover:text-white"}`}
+              >
+                EN
               </button>
             </div>
-          ) : (
-            <button onClick={() => setShowLogin(true)} className="bg-[#6D001F] hover:bg-[#8a0028] px-4 py-2 rounded-lg text-sm font-semibold">
-              {t.login}
-            </button>
-          )}
+
+            {loggedIn ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm hidden sm:inline">{userEmail?.split("@")[0]}</span>
+                <button
+                  onClick={logout}
+                  className="bg-[#6D001F] hover:bg-[#8a0028] px-4 py-2 rounded-full text-sm font-semibold transition"
+                >
+                  {t.logout}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="bg-[#6D001F] hover:bg-[#8a0028] px-5 py-2 rounded-full text-sm font-semibold transition"
+              >
+                {t.login}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
       {showLogin && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setShowLogin(false)}>
-          <div className="bg-white text-[#450213] p-6 rounded-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white text-[#450213] p-6 rounded-2xl w-full max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-xl font-bold mb-1">{t.title}</h3>
             <p className="text-sm opacity-70 mb-4">{t.desc}</p>
             <input
@@ -65,12 +80,12 @@ export default function Header() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@contoh.com"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-[#2E51A2]"
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-[#2E51A2]"
             />
-            <button onClick={handleLogin} className="w-full bg-[#6D001F] text-white py-2.5 rounded-lg font-semibold mb-2">
+            <button onClick={handleLogin} className="w-full bg-[#6D001F] hover:bg-[#8a0028] text-white py-3 rounded-xl font-semibold mb-2 transition">
               {t.send}
             </button>
-            <button onClick={() => setShowLogin(false)} className="w-full text-sm opacity-70">
+            <button onClick={() => setShowLogin(false)} className="w-full text-sm opacity-70 py-2">
               {t.cancel}
             </button>
           </div>

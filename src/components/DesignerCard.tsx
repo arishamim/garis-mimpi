@@ -2,22 +2,25 @@ import Link from "next/link";
 import type { Designer } from "@/data/mock";
 
 export default function DesignerCard({ designer }: { designer: Designer }) {
-  const photoCount = designer.photos.length;
   return (
     <Link
       href={`/designer/${designer.id}`}
-      className="bg-[#F7F1E8] rounded-2xl overflow-hidden shadow hover:shadow-lg hover:-translate-y-1 transition-all block"
+      className="group bg-white rounded-3xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
     >
-      <div className={`h-44 grid ${photoCount === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
-        {designer.photos.slice(0, 4).map((src, i) => (
-          <img key={i} src={src} alt="" className="w-full h-full object-cover" />
-        ))}
-      </div>
-      <div className="p-4">
-        <div className="font-bold text-lg text-[#450213]">{designer.name}</div>
-        <div className="text-yellow-600 mt-1 text-lg">
-          ★★★ <span className="text-[#450213] font-semibold ml-1">{designer.stars}</span>
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src={designer.photos[0]}
+          alt={designer.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+        />
+        <div className="absolute top-3 right-3 bg-[#6D001F] text-white text-xs font-bold px-2.5 py-1 rounded-full">
+          ★ {designer.stars}
         </div>
+      </div>
+
+      <div className="p-5">
+        <h3 className="font-bold text-lg text-[#450213] truncate">{designer.name}</h3>
+        <p className="text-sm text-[#450213]/70 mt-1">Desainer Grafis</p>
       </div>
     </Link>
   );

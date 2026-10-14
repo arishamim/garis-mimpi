@@ -11,16 +11,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <body className="min-h-screen bg-[#D4BFA2] text-[#450213] antialiased">
+      <body className="min-h-screen bg-[#0D0D0D] text-[#F5F0E8] antialiased">
         <AppProvider>
           <Header />
           <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
             {children}
           </main>
-          <footer className="bg-[#450213] text-white text-center py-8 text-sm mt-16">
-            <div className="max-w-7xl mx-auto px-4">
-              © 2026 Garis Mimpi • Fee platform 8% • Transaksi di luar platform dilarang
-            </div>
+          <footer className="border-t border-white/10 text-center py-8 text-sm text-white/50 mt-16">
+            © 2026 Garis Mimpi • Fee platform 8% • Transaksi di luar platform dilarang
           </footer>
         </AppProvider>
       </body>

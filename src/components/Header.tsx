@@ -10,8 +10,8 @@ export default function Header() {
   const [email, setEmail] = useState("");
 
   const t = {
-    id: { login: "Masuk", logout: "Keluar", title: "Masuk / Daftar", desc: "Masukkan email yang terhubung ke nomor HP", send: "Kirim Magic Link", cancel: "Batal" },
-    en: { login: "Login", logout: "Logout", title: "Login / Register", desc: "Enter the email linked to your phone", send: "Send Magic Link", cancel: "Cancel" },
+    id: { login: "Masuk", logout: "Keluar", upload: "Tambah Karya" },
+    en: { login: "Login", logout: "Logout", upload: "Add Work" },
   }[lang];
 
   const handleLogin = () => {
@@ -62,6 +62,21 @@ export default function Header() {
               }}>EN</button>
             </div>
 
+            {loggedIn && (
+              <Link href="/upload" style={{
+                background: "transparent",
+                color: "#FF6B00",
+                padding: "8px 16px",
+                borderRadius: "9999px",
+                border: "1px solid #FF6B00",
+                fontWeight: 600,
+                textDecoration: "none",
+                fontSize: "0.875rem"
+              }}>
+                {t.upload}
+              </Link>
+            )}
+
             {loggedIn ? (
               <button onClick={logout} style={{
                 background: "#FF6B00", color: "#000", padding: "8px 16px",
@@ -84,10 +99,10 @@ export default function Header() {
         }} onClick={() => setShowLogin(false)}>
           <div style={{
             background: "#1A1A1A", padding: "1.5rem", borderRadius: "1rem",
-            width: "100%", maxWidth: "380px", margin: "1rem", border: "1px solid rgba(255,255,255,0.1)"
+            width: "100%", maxWidth: "380px", margin: "1rem", border: "1px solid rgba(255,255,255,0.1)",
+            color: "#F5F0E8"
           }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "0.5rem" }}>{t.title}</h3>
-            <p style={{ fontSize: "0.875rem", opacity: 0.6, marginBottom: "1rem" }}>{t.desc}</p>
+            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Masuk / Daftar</h3>
             <input
               type="email"
               value={email}
@@ -101,12 +116,8 @@ export default function Header() {
             />
             <button onClick={handleLogin} style={{
               width: "100%", background: "#FF6B00", color: "#000", padding: "0.75rem",
-              borderRadius: "0.75rem", border: "none", fontWeight: 600, cursor: "pointer", marginBottom: "0.5rem"
-            }}>{t.send}</button>
-            <button onClick={() => setShowLogin(false)} style={{
-              width: "100%", background: "transparent", color: "rgba(255,255,255,0.6)",
-              padding: "0.5rem", border: "none", cursor: "pointer"
-            }}>{t.cancel}</button>
+              borderRadius: "0.75rem", border: "none", fontWeight: 600, cursor: "pointer"
+            }}>Kirim Magic Link</button>
           </div>
         </div>
       )}

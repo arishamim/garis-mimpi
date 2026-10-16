@@ -4,29 +4,44 @@ import { useEffect, useState } from "react";
 import { designers as mockDesigners } from "@/data/mock";
 import DesignerCard from "@/components/DesignerCard";
 import { useApp } from "@/context/AppContext";
+import { supabase } from "@/lib/supabase";
 
 export default function Home() {
   const { lang } = useApp();
   const [allDesigners, setAllDesigners] = useState(mockDesigners);
 
   useEffect(() => {
-    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
-    if (works.length === 0) return;
+    async function loadWorks() {
+      const { data, error } = await supabase
+        .from("works")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-    const uploadedByOwner: Record<string, any> = {};
-    works.forEach((w: any) => {
-      if (!uploadedByOwner[w.owner]) {
-        uploadedByOwner[w.owner] = {
-          id: "user-" + w.owner,
-          name: w.owner,          // sudah username
-          stars: 0,
-          photos: [],
-        };
+      if (error || !data) {
+        console.error(error);
+        return;
       }
-      uploadedByOwner[w.owner].photos.push(w.image);
-    });
 
-    setAllDesigners([...Object.values(uploadedByOwner), ...mockDesigners]);
+      // Kelompokkan berdasarkan owner
+      const byOwner: Record<string, any> = {};
+      data.forEach((w: any) => {
+        if (!byOwner[w.owner]) {
+          byOwner[w.owner] = {
+            id: "user-" + w.owner,
+            name: w.owner,
+            stars: 0,
+            photos: [],
+          };
+        }
+        byOwner[w.owner].photos.push(w.image_url);
+        byOwner[w.owner].stars += w.stars || 0;
+      });
+
+      const uploaded = Object.values(byOwner);
+      setAllDesigners([...uploaded, ...mockDesigners]);
+    }
+
+    loadWorks();
   }, []);
 
   const t = {

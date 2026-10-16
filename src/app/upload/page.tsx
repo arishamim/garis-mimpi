@@ -50,26 +50,30 @@ export default function UploadPage() {
       return;
     }
 
+    // Ambil username dari profil
+    const profile = JSON.parse(localStorage.getItem("garis-profile") || "{}");
+    const displayName = profile.username || profile.fullName || userEmail?.split("@")[0] || "User";
+
     const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
     const newWork = {
       id: Date.now(),
       title: fileName,
       folder: selectedFolder,
-      owner: userEmail?.split("@")[0] || "User",
+      owner: displayName,          // ← sekarang pakai username
       stars: 0,
       image: "https://picsum.photos/seed/" + Date.now() + "/400/300",
     };
     works.push(newWork);
     localStorage.setItem("garis-works", JSON.stringify(works));
 
-    setMessage(`Karya "${fileName}" berhasil diupload ke folder "${selectedFolder}".`);
+    setMessage(`Karya berhasil diupload sebagai "${displayName}".`);
     setFileName("");
   };
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Tambah Karya</h1>
-      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Karya yang diupload akan muncul di beranda.</p>
+      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Pastikan sudah isi Username di Profil.</p>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Pilih Folder</label>

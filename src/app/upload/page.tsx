@@ -3,15 +3,17 @@
 import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export default function UploadPage() {
-  const { loggedIn, userEmail } = useApp();
+  const { loggedIn } = useApp();
   const [folders, setFolders] = useState<string[]>(["3D Furniture", "Logo", "Ilustrasi"]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [newFolder, setNewFolder] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [message, setMessage] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("garis-folders");
@@ -21,31 +23,20 @@ export default function UploadPage() {
   if (!loggedIn) {
     return (
       <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
-        <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Login dulu untuk upload karya</h2>
-        <Link href="/" style={{ color: "#FF6B00" }}>Kembali ke Beranda</Link>
+        <h2>Login dulu</h2>
+        <Link href="/" style={{ color: "#FF6B00" }}>Kembali</Link>
       </div>
     );
   }
 
-  // Cek profil lengkap
-  const profile = JSON.parse(typeof window !== "undefined" ? localStorage.getItem("garis-profile") || "{}" : "{}");
+  const profile = JSON.parse(localStorage.getItem("garis-profile") || "{}");
   const profileComplete = profile.username && profile.fullName && profile.ewallet;
 
   if (!profileComplete) {
     return (
       <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
-        <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Lengkapi Profil Dulu</h2>
-        <p style={{ opacity: 0.7, marginBottom: "1.5rem" }}>Username, Nama Lengkap, dan Nomor E-Wallet wajib diisi.</p>
-        <Link href="/profile" style={{
-          background: "#FF6B00",
-          color: "#000",
-          padding: "0.75rem 1.5rem",
-          borderRadius: "9999px",
-          textDecoration: "none",
-          fontWeight: 600
-        }}>
-          Isi Profil
-        </Link>
+        <h2>Lengkapi Profil Dulu</h2>
+        <Link href="/profile" style={{ color: "#FF6B00" }}>Isi Profil</Link>
       </div>
     );
   }
@@ -63,139 +54,95 @@ export default function UploadPage() {
     setShowNew(false);
   };
 
-  const handleUpload = () => {
-    if (!selectedFolder) {
-      setMessage("Pilih atau buat folder dulu.");
-      return;
-    }
-    if (!fileName) {
-      setMessage("Pilih file dulu.");
+  const handleUpload = async () => {
+    if (!selectedFolder || !file) {
+      setMessage("Pilih folder dan file dulu.");
       return;
     }
 
-    const displayName = profile.username || profile.fullName || userEmail?.split("@")[0] || "User";
+    setUploading(true);
+    setMessage("Mengupload...");
 
-    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
-    const newWork = {
-      id: Date.now(),
-      title: fileName,
+    const displayName = profile.username || profile.fullName || "User";
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${displayName}/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("works")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      setMessage("Gagal upload: " + uploadError.message);
+      setUploading(false);
+      return;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from("works")
+      .getPublicUrl(filePath);
+
+    const { error: dbError } = await supabase.from("works").insert({
+      title: file.name,
       folder: selectedFolder,
       owner: displayName,
+      image_url: urlData.publicUrl,
       stars: 0,
-      image: "https://picsum.photos/seed/" + Date.now() + "/400/300",
-    };
-    works.push(newWork);
-    localStorage.setItem("garis-works", JSON.stringify(works));
+    });
 
-    setMessage(`Karya berhasil diupload sebagai "${displayName}".`);
-    setFileName("");
+    if (dbError) {
+      setMessage("Gagal simpan data: " + dbError.message);
+    } else {
+      setMessage("Karya berhasil diupload!");
+      setFile(null);
+    }
+
+    setUploading(false);
   };
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Tambah Karya</h1>
-      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Karya yang diupload akan muncul di beranda.</p>
+      <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "1rem" }}>Tambah Karya</h1>
 
       <div style={{ marginBottom: "1.5rem" }}>
-        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Pilih Folder</label>
+        <label style={{ display: "block", marginBottom: "0.5rem" }}>Pilih Folder</label>
         <select
           value={selectedFolder}
           onChange={(e) => setSelectedFolder(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "0.75rem",
-            borderRadius: "0.5rem",
-            background: "#1A1A1A",
-            color: "#F5F0E8",
-            border: "1px solid rgba(255,255,255,0.2)"
-          }}
+          style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", background: "#1A1A1A", color: "#F5F0E8", border: "1px solid rgba(255,255,255,0.2)" }}
         >
           <option value="">-- Pilih folder --</option>
-          {folders.map((f) => (
-            <option key={f} value={f}>{f}</option>
-          ))}
+          {folders.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
       </div>
 
-      <button
-        onClick={() => setShowNew(!showNew)}
-        style={{
-          background: "transparent",
-          color: "#FF6B00",
-          border: "1px solid #FF6B00",
-          padding: "0.5rem 1rem",
-          borderRadius: "9999px",
-          marginBottom: "1rem",
-          cursor: "pointer"
-        }}
-      >
+      <button onClick={() => setShowNew(!showNew)} style={{ background: "transparent", color: "#FF6B00", border: "1px solid #FF6B00", padding: "0.5rem 1rem", borderRadius: "9999px", marginBottom: "1rem" }}>
         + Buat Folder Baru
       </button>
 
       {showNew && (
-        <div style={{ marginBottom: "1.5rem", display: "flex", gap: "0.5rem" }}>
-          <input
-            value={newFolder}
-            onChange={(e) => setNewFolder(e.target.value)}
-            placeholder="Nama folder baru"
-            style={{
-              flex: 1,
-              padding: "0.75rem",
-              borderRadius: "0.5rem",
-              background: "#1A1A1A",
-              color: "#F5F0E8",
-              border: "1px solid rgba(255,255,255,0.2)"
-            }}
-          />
-          <button
-            onClick={handleCreateFolder}
-            style={{
-              background: "#FF6B00",
-              color: "#000",
-              padding: "0.75rem 1.25rem",
-              borderRadius: "0.5rem",
-              border: "none",
-              fontWeight: 600,
-              cursor: "pointer"
-            }}
-          >
-            Buat
-          </button>
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+          <input value={newFolder} onChange={(e) => setNewFolder(e.target.value)} placeholder="Nama folder" style={{ flex: 1, padding: "0.75rem", borderRadius: "0.5rem", background: "#1A1A1A", color: "#F5F0E8", border: "1px solid rgba(255,255,255,0.2)" }} />
+          <button onClick={handleCreateFolder} style={{ background: "#FF6B00", color: "#000", padding: "0.75rem 1rem", borderRadius: "0.5rem", border: "none" }}>Buat</button>
         </div>
       )}
 
       <div style={{ marginBottom: "1.5rem" }}>
-        <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Upload File</label>
-        <input
-          type="file"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
-          style={{ color: "#F5F0E8" }}
-        />
+        <label>Upload File</label><br />
+        <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] || null)} style={{ marginTop: "0.5rem", color: "#F5F0E8" }} />
       </div>
 
       <button
         onClick={handleUpload}
-        style={{
-          background: "#FF6B00",
-          color: "#000",
-          padding: "0.875rem 2rem",
-          borderRadius: "9999px",
-          border: "none",
-          fontWeight: 700,
-          fontSize: "1rem",
-          cursor: "pointer"
-        }}
+        disabled={uploading}
+        style={{ background: "#FF6B00", color: "#000", padding: "0.875rem 2rem", borderRadius: "9999px", border: "none", fontWeight: 700, cursor: uploading ? "not-allowed" : "pointer" }}
       >
-        Upload Karya
+        {uploading ? "Mengupload..." : "Upload Karya"}
       </button>
 
-      {message && (
-        <p style={{ marginTop: "1.5rem", padding: "1rem", background: "rgba(255,107,0,0.1)", borderRadius: "0.5rem" }}>
-          {message}
-        </p>
-      )}
+      {message && <p style={{ marginTop: "1rem", padding: "1rem", background: "rgba(255,107,0,0.1)", borderRadius: "0.5rem" }}>{message}</p>}
 
-      <Link href="/" style={{ display: "inline-block", marginTop: "2rem", color: "#FF6B00" }}>← Kembali ke Beranda</Link>
+      <Link href="/" style={{ display: "inline-block", marginTop: "2rem", color: "#FF6B00" }}>← Kembali</Link>
     </div>
   );
 }

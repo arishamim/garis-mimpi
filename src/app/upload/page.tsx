@@ -1,42 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import Link from "next/link";
 
-const FOLDER_PRESETS = [
-  { category: "3D", items: ["3D Furniture", "3D Mockup"] },
-  { category: "Ilustrasi", items: ["Comic", "Merchandise", "Character", "Digital Art"] },
-  { category: "Logo", items: ["Logo", "Brand Identity"] },
-  { category: "Lainnya", items: ["Social Media", "Poster & Flyer", "Packaging", "UI/UX", "Typography"] },
-];
-
 export default function UploadPage() {
-  const { loggedIn } = useApp();
-  const [folders, setFolders] = useState<string[]>(["3D Furniture", "Logo"]);
+  const { loggedIn, userEmail } = useApp();
+  const [folders, setFolders] = useState<string[]>(["3D Furniture", "Logo", "Ilustrasi"]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [newFolder, setNewFolder] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [message, setMessage] = useState("");
+  const [fileName, setFileName] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("garis-folders");
+    if (saved) setFolders(JSON.parse(saved));
+  }, []);
 
   if (!loggedIn) {
     return (
       <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
         <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Login dulu untuk upload karya</h2>
-        <p style={{ opacity: 0.7 }}>Gunakan tombol Masuk di header.</p>
+        <Link href="/" style={{ color: "#FF6B00" }}>Kembali ke Beranda</Link>
       </div>
     );
   }
 
   const handleCreateFolder = () => {
     if (!newFolder.trim()) return;
-    if (!folders.includes(newFolder.trim())) {
-      setFolders([...folders, newFolder.trim()]);
+    const name = newFolder.trim();
+    if (!folders.includes(name)) {
+      const updated = [...folders, name];
+      setFolders(updated);
+      localStorage.setItem("garis-folders", JSON.stringify(updated));
     }
-    setSelectedFolder(newFolder.trim());
+    setSelectedFolder(name);
     setNewFolder("");
     setShowNew(false);
-    setMessage(`Folder "${newFolder.trim()}" siap digunakan.`);
   };
 
   const handleUpload = () => {
@@ -44,13 +45,31 @@ export default function UploadPage() {
       setMessage("Pilih atau buat folder dulu.");
       return;
     }
-    setMessage(`Karya berhasil diupload ke folder "${selectedFolder}" (simulasi).`);
+    if (!fileName) {
+      setMessage("Pilih file dulu.");
+      return;
+    }
+
+    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
+    const newWork = {
+      id: Date.now(),
+      title: fileName,
+      folder: selectedFolder,
+      owner: userEmail?.split("@")[0] || "User",
+      stars: 0,
+      image: "https://picsum.photos/seed/" + Date.now() + "/400/300",
+    };
+    works.push(newWork);
+    localStorage.setItem("garis-works", JSON.stringify(works));
+
+    setMessage(`Karya "${fileName}" berhasil diupload ke folder "${selectedFolder}".`);
+    setFileName("");
   };
 
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Tambah Karya</h1>
-      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Lengkapi profil dulu sebelum upload (simulasi: sudah dianggap lengkap).</p>
+      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Karya yang diupload akan muncul di beranda.</p>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Pilih Folder</label>
@@ -122,8 +141,11 @@ export default function UploadPage() {
 
       <div style={{ marginBottom: "1.5rem" }}>
         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Upload File</label>
-        <input type="file" multiple style={{ color: "#F5F0E8" }} />
-        <p style={{ fontSize: "0.75rem", opacity: 0.6, marginTop: "0.25rem" }}>Format bebas (simulasi). Hasil akhir order wajib ZIP.</p>
+        <input
+          type="file"
+          onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
+          style={{ color: "#F5F0E8" }}
+        />
       </div>
 
       <button
@@ -147,15 +169,6 @@ export default function UploadPage() {
           {message}
         </p>
       )}
-
-      <div style={{ marginTop: "2rem", fontSize: "0.875rem", opacity: 0.6 }}>
-        <p>Preset kategori yang disarankan:</p>
-        <ul style={{ marginTop: "0.5rem", paddingLeft: "1.25rem" }}>
-          {FOLDER_PRESETS.map((g) => (
-            <li key={g.category}><strong>{g.category}:</strong> {g.items.join(", ")}</li>
-          ))}
-        </ul>
-      </div>
 
       <Link href="/" style={{ display: "inline-block", marginTop: "2rem", color: "#FF6B00" }}>← Kembali ke Beranda</Link>
     </div>

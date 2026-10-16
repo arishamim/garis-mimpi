@@ -11,28 +11,22 @@ export default function Home() {
 
   useEffect(() => {
     const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
-    const profile = JSON.parse(localStorage.getItem("garis-profile") || "{}");
-    const displayName = profile.username || profile.fullName || "User";
-
     if (works.length === 0) return;
 
     const uploadedByOwner: Record<string, any> = {};
     works.forEach((w: any) => {
-      const ownerKey = w.owner;
-      if (!uploadedByOwner[ownerKey]) {
-        uploadedByOwner[ownerKey] = {
-          id: "user-" + ownerKey,
-          name: displayName,          // ← pakai username dari profil
+      if (!uploadedByOwner[w.owner]) {
+        uploadedByOwner[w.owner] = {
+          id: "user-" + w.owner,
+          name: w.owner,          // sudah username
           stars: 0,
           photos: [],
         };
       }
-      uploadedByOwner[ownerKey].photos.push(w.image);
-      uploadedByOwner[ownerKey].stars += w.stars || 0;
+      uploadedByOwner[w.owner].photos.push(w.image);
     });
 
-    const uploadedList = Object.values(uploadedByOwner);
-    setAllDesigners([...uploadedList, ...mockDesigners]);
+    setAllDesigners([...Object.values(uploadedByOwner), ...mockDesigners]);
   }, []);
 
   const t = {

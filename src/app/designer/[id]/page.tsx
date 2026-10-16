@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { designers, foldersByDesigner } from "@/data/mock";
+import { designers } from "@/data/mock";
 import { useApp } from "@/context/AppContext";
 
 export default function DesignerPage() {
@@ -10,53 +10,41 @@ export default function DesignerPage() {
   const id = params.id as string;
   const { lang } = useApp();
 
-  const designer = designers.find((d) => d.id === id);
-  const folders = foldersByDesigner[id] || [];
+  const designer = designers.find((d) => d.id === id) || {
+    id,
+    name: id.replace("user-", ""),
+    stars: 0,
+    photos: ["https://picsum.photos/seed/" + id + "/800/600"],
+  };
 
-  if (!designer) {
-    return <div>Desainer tidak ditemukan</div>;
-  }
-
-  const t = {
-    id: { back: "← Kembali", cat: "Folder Kategori", stars: "bintang" },
-    en: { back: "← Back", cat: "Category Folders", stars: "stars" },
-  }[lang];
+  const folders = ["3D Furniture", "Ilustrasi", "Logo", "Social Media"];
 
   return (
     <div>
-      <Link href="/" className="text-[#2E51A2] font-semibold mb-6 inline-block">
-        {t.back}
-      </Link>
+      <Link href="/" style={{ color: "#FF6B00", textDecoration: "none", fontSize: "0.875rem" }}>← Kembali</Link>
 
-      <div className="flex items-center gap-4 mb-8">
-        <div className="w-20 h-20 rounded-full bg-[#2E51A2] flex items-center justify-center text-white text-2xl font-bold">
-          {designer.name.charAt(0)}
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold">{designer.name}</h1>
-          <div className="text-yellow-600 text-xl mt-1">
-            ★★★ <span className="text-[#450213] font-semibold ml-1">{designer.stars}</span> {t.stars}
-          </div>
-        </div>
+      <div style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
+        <h1 style={{ fontSize: "2.25rem", fontWeight: "bold" }}>{designer.name}</h1>
+        <div style={{ color: "#FF6B00", fontSize: "1.25rem", marginTop: "0.5rem" }}>★ {designer.stars} bintang</div>
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">{t.cat}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {folders.map((f) => (
+      <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>Folder</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "1rem" }}>
+        {folders.map((folder) => (
           <Link
-            key={f.id}
-            href={`/designer/${id}/${f.id}`}
-            className="bg-[#F7F1E8] rounded-2xl overflow-hidden shadow hover:shadow-md transition block"
+            key={folder}
+            href={`/designer/${id}/${encodeURIComponent(folder)}`}
+            style={{
+              background: "#F5F0E8",
+              color: "#1A1A1A",
+              borderRadius: "1rem",
+              padding: "1.25rem",
+              textDecoration: "none",
+              fontWeight: 600,
+              display: "block"
+            }}
           >
-            <div className="h-40 grid grid-cols-2">
-              {f.preview.map((src, i) => (
-                <img key={i} src={src} alt="" className="w-full h-full object-cover" />
-              ))}
-            </div>
-            <div className="p-4">
-              <div className="font-semibold text-lg">📁 {f.name}</div>
-              <div className="text-sm opacity-70">{f.fileCount} file</div>
-            </div>
+            📁 {folder}
           </Link>
         ))}
       </div>

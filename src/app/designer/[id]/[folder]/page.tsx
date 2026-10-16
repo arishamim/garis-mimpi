@@ -2,73 +2,51 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { designers, foldersByDesigner, getFiles } from "@/data/mock";
-import { useApp } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
 
 export default function FolderPage() {
   const params = useParams();
-  const designerId = params.id as string;
-  const folderId = params.folder as string;
-  const { lang, loggedIn } = useApp();
+  const router = useRouter();
+  const id = params.id as string;
+  const folder = decodeURIComponent(params.folder as string);
 
-  const designer = designers.find((d) => d.id === designerId);
-  const folder = (foldersByDesigner[designerId] || []).find((f) => f.id === folderId);
-  const files = getFiles(designerId, folderId);
-
-  if (!designer || !folder) {
-    return <div>Folder tidak ditemukan</div>;
-  }
-
-  const t = {
-    id: {
-      back: "← Kembali ke desainer",
-      order: "Order Jasa",
-      needLogin: "Silakan login terlebih dahulu untuk melakukan pembelian.",
-      success: "Order berhasil dibuat (simulasi escrow). Lanjut ke pembayaran e-wallet.",
-    },
-    en: {
-      back: "← Back to designer",
-      order: "Order Service",
-      needLogin: "Please login first to make a purchase.",
-      success: "Order created successfully (escrow simulation). Proceed to e-wallet payment.",
-    },
-  }[lang];
+  const files = [
+    "https://picsum.photos/seed/" + folder + "1/400/300",
+    "https://picsum.photos/seed/" + folder + "2/400/300",
+    "https://picsum.photos/seed/" + folder + "3/400/300",
+  ];
 
   const handleOrder = () => {
-    if (!loggedIn) {
-      alert(t.needLogin);
-      return;
-    }
-    alert(t.success);
+    router.push(`/chat/${id}`);
   };
 
   return (
     <div>
-      <Link href={`/designer/${designerId}`} className="text-[#2E51A2] font-semibold mb-6 inline-block">
-        {t.back}
-      </Link>
+      <Link href={`/designer/${id}`} style={{ color: "#FF6B00", textDecoration: "none", fontSize: "0.875rem" }}>← Kembali ke {id}</Link>
 
-      <h1 className="text-3xl font-bold mb-1">📁 {folder.name}</h1>
-      <p className="opacity-75 mb-6">
-        oleh {designer.name} • {files.length} file
-      </p>
+      <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginTop: "1rem", marginBottom: "1.5rem" }}>{folder}</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-        {files.map((file) => (
-          <div key={file.id} className="bg-white rounded-xl overflow-hidden shadow">
-            <img src={file.url} alt={file.name} className="w-full h-40 object-cover" />
-            <div className="p-2 text-sm truncate">{file.name}</div>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+        {files.map((src, i) => (
+          <img key={i} src={src} alt="" style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "0.75rem" }} />
         ))}
       </div>
 
       <button
         onClick={handleOrder}
-        className="bg-[#6D001F] hover:bg-[#8a0028] text-white px-8 py-3 rounded-lg font-semibold text-lg"
+        style={{
+          background: "#FF6B00",
+          color: "#000",
+          padding: "0.875rem 2rem",
+          borderRadius: "9999px",
+          border: "none",
+          fontWeight: 700,
+          fontSize: "1rem",
+          cursor: "pointer"
+        }}
       >
-        {t.order}
+        Order Jasa
       </button>
-      <p className="text-xs mt-3 opacity-60">Pembayaran via e-wallet • Fee 8% • Escrow aman</p>
     </div>
   );
 }

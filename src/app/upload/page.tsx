@@ -27,6 +27,29 @@ export default function UploadPage() {
     );
   }
 
+  // Cek profil lengkap
+  const profile = JSON.parse(typeof window !== "undefined" ? localStorage.getItem("garis-profile") || "{}" : "{}");
+  const profileComplete = profile.username && profile.fullName && profile.ewallet;
+
+  if (!profileComplete) {
+    return (
+      <div style={{ textAlign: "center", padding: "4rem 1rem" }}>
+        <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Lengkapi Profil Dulu</h2>
+        <p style={{ opacity: 0.7, marginBottom: "1.5rem" }}>Username, Nama Lengkap, dan Nomor E-Wallet wajib diisi.</p>
+        <Link href="/profile" style={{
+          background: "#FF6B00",
+          color: "#000",
+          padding: "0.75rem 1.5rem",
+          borderRadius: "9999px",
+          textDecoration: "none",
+          fontWeight: 600
+        }}>
+          Isi Profil
+        </Link>
+      </div>
+    );
+  }
+
   const handleCreateFolder = () => {
     if (!newFolder.trim()) return;
     const name = newFolder.trim();
@@ -50,8 +73,6 @@ export default function UploadPage() {
       return;
     }
 
-    // Ambil username dari profil
-    const profile = JSON.parse(localStorage.getItem("garis-profile") || "{}");
     const displayName = profile.username || profile.fullName || userEmail?.split("@")[0] || "User";
 
     const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
@@ -59,7 +80,7 @@ export default function UploadPage() {
       id: Date.now(),
       title: fileName,
       folder: selectedFolder,
-      owner: displayName,          // ← sekarang pakai username
+      owner: displayName,
       stars: 0,
       image: "https://picsum.photos/seed/" + Date.now() + "/400/300",
     };
@@ -73,7 +94,7 @@ export default function UploadPage() {
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Tambah Karya</h1>
-      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Pastikan sudah isi Username di Profil.</p>
+      <p style={{ opacity: 0.7, marginBottom: "2rem" }}>Karya yang diupload akan muncul di beranda.</p>
 
       <div style={{ marginBottom: "1.5rem" }}>
         <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: 600 }}>Pilih Folder</label>

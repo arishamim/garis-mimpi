@@ -2,99 +2,71 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { designers } from "@/data/mock";
+import { supabase } from "@/lib/supabase";
 
-export default function DesignerPage() {
+export default function FolderPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
-  const [folders, setFolders] = useState<{ name: string; photos: string[] }[]>([]);
+  const folder = decodeURIComponent(params.folder as string);
+  const [images, setImages] = useState<string[]>([]);
 
-  const designer = designers.find((d) => d.id === id) || {
-    id,
-    name: id.replace("user-", ""),
-    stars: 0,
-    photos: [],
-  };
+  const ownerName = id.replace("user-", "");
 
   useEffect(() => {
-    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
-    const ownerName = designer.name;
+    async function loadImages() {
+      const { data, error } = await supabase
+        .from("works")
+        .select("image_url")
+        .eq("owner", ownerName)
+        .eq("folder", folder);
 
-    // Ambil karya milik desainer ini
-    const myWorks = works.filter((w: any) => w.owner === ownerName);
+      if (!error && data) {
+        setImages(data.map((d: any) => d.image_url));
+      }
+    }
+    loadImages();
+  }, [ownerName, folder]);
 
-    // Kelompokkan berdasarkan folder
-    const folderMap: Record<string, string[]> = {};
-    myWorks.forEach((w: any) => {
-      if (!folderMap[w.folder]) folderMap[w.folder] = [];
-      folderMap[w.folder].push(w.image);
-    });
-
-    // Jika tidak ada karya, tampilkan folder default kosong
-    const defaultFolders = ["3D Furniture", "Ilustrasi", "Logo", "Social Media"];
-    const result = Object.keys(folderMap).length > 0
-      ? Object.entries(folderMap).map(([name, photos]) => ({ name, photos }))
-      : defaultFolders.map((name) => ({ name, photos: [] }));
-
-    setFolders(result);
-  }, [designer.name]);
+  const handleOrder = () => {
+    router.push(`/chat/${id}`);
+  };
 
   return (
     <div>
-      <Link href="/" style={{ color: "#FF6B00", textDecoration: "none", fontSize: "0.875rem" }}>← Kembali</Link>
+      <Link href={`/designer/${id}`} style={{ color: "#FF6B00", textDecoration: "none", fontSize: "0.875rem" }}>
+        ← Kembali ke {ownerName}
+      </Link>
 
-      <div style={{ marginTop: "1.5rem", marginBottom: "2rem" }}>
-        <h1 style={{ fontSize: "2.25rem", fontWeight: "bold" }}>{designer.name}</h1>
-        <div style={{ color: "#FF6B00", fontSize: "1.25rem", marginTop: "0.5rem" }}>★ {designer.stars} bintang</div>
-      </div>
+      <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginTop: "1rem", marginBottom: "1.5rem" }}>{folder}</h1>
 
-      <h2 style={{ fontSize: "1.25rem", fontWeight: 600, marginBottom: "1rem" }}>Folder</h2>
+      {images.length === 0 ? (
+        <p style={{ opacity: 0.6 }}>Belum ada karya di folder ini.</p>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+          {images.map((src, i) => (
+            <img key={i} src={src} alt="" style={{ width: "100%", height: "180px", objectFit: "cover", borderRadius: "0.75rem" }} />
+          ))}
+        </div>
+      )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1.25rem" }}>
-        {folders.map((folder) => (
-          <Link
-            key={folder.name}
-            href={`/designer/${id}/${encodeURIComponent(folder.name)}`}
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <div style={{
-              background: "#F5F0E8",
-              borderRadius: "1rem",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.25)"
-            }}>
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "2px",
-                height: "180px",
-                background: "#e5e5e5"
-              }}>
-                {folder.photos.length > 0 ? (
-                  folder.photos.slice(0, 4).map((src, i) => (
-                    <img key={i} src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ))
-                ) : (
-                  <div style={{
-                    gridColumn: "1 / -1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#888",
-                    fontSize: "0.875rem"
-                  }}>
-                    Belum ada karya
-                  </div>
-                )}
-              </div>
-              <div style={{ padding: "0.875rem 1rem", color: "#1A1A1A", fontWeight: 600 }}>
-                📁 {folder.name}
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <button
+        onClick={handleOrder}
+        style={{
+          background: "#FF6B00",
+          color: "#000",
+          padding: "0.875rem 2rem",
+          borderRadius: "9999px",
+          border: "none",
+          fontWeight: 700,
+          fontSize: "1rem",
+          cursor: "pointer"
+        }}
+      >
+        Order Jasa
+      </button>
     </div>
   );
 }

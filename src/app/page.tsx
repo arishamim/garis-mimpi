@@ -1,18 +1,43 @@
 "use client";
 
-import { designers } from "@/data/mock";
+import { useEffect, useState } from "react";
+import { designers as mockDesigners } from "@/data/mock";
 import DesignerCard from "@/components/DesignerCard";
 import { useApp } from "@/context/AppContext";
 
 export default function Home() {
   const { lang } = useApp();
+  const [allDesigners, setAllDesigners] = useState(mockDesigners);
+
+  useEffect(() => {
+    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
+    if (works.length === 0) return;
+
+    // Group uploaded works by owner
+    const uploadedByOwner: Record<string, any> = {};
+    works.forEach((w: any) => {
+      if (!uploadedByOwner[w.owner]) {
+        uploadedByOwner[w.owner] = {
+          id: "user-" + w.owner,
+          name: w.owner,
+          stars: 0,
+          photos: [],
+        };
+      }
+      uploadedByOwner[w.owner].photos.push(w.image);
+      uploadedByOwner[w.owner].stars += w.stars || 0;
+    });
+
+    const uploadedList = Object.values(uploadedByOwner);
+    setAllDesigners([...uploadedList, ...mockDesigners]);
+  }, []);
 
   const t = {
     id: { badge: "★ KARYA ANAK MUDA, UNTUK SEMUA", title: "Garis Mimpi,", sub: "DESAIN BERANI, IDE NYATA." },
     en: { badge: "★ YOUNG CREATIVES, FOR EVERYONE", title: "Garis Mimpi,", sub: "BOLD DESIGN, REAL IDEAS." },
   }[lang];
 
-  const sorted = [...designers].sort((a, b) => b.stars - a.stars);
+  const sorted = [...allDesigners].sort((a, b) => b.stars - a.stars);
 
   return (
     <div>

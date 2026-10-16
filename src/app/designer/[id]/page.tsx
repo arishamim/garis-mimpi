@@ -2,55 +2,43 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { designers } from "@/data/mock";
 
 export default function DesignerPage() {
   const params = useParams();
   const id = params.id as string;
+  const [folders, setFolders] = useState<{ name: string; photos: string[] }[]>([]);
 
   const designer = designers.find((d) => d.id === id) || {
     id,
     name: id.replace("user-", ""),
     stars: 0,
-    photos: ["https://picsum.photos/seed/" + id + "/800/600"],
+    photos: [],
   };
 
-  // Contoh folder dengan preview foto (2-4 gambar)
-  const folders = [
-    {
-      name: "3D Furniture",
-      photos: [
-        "https://picsum.photos/seed/furn1/300/300",
-        "https://picsum.photos/seed/furn2/300/300",
-        "https://picsum.photos/seed/furn3/300/300",
-        "https://picsum.photos/seed/furn4/300/300",
-      ],
-    },
-    {
-      name: "Ilustrasi",
-      photos: [
-        "https://picsum.photos/seed/ill1/300/300",
-        "https://picsum.photos/seed/ill2/300/300",
-        "https://picsum.photos/seed/ill3/300/300",
-      ],
-    },
-    {
-      name: "Logo",
-      photos: [
-        "https://picsum.photos/seed/logo1/300/300",
-        "https://picsum.photos/seed/logo2/300/300",
-      ],
-    },
-    {
-      name: "Social Media",
-      photos: [
-        "https://picsum.photos/seed/soc1/300/300",
-        "https://picsum.photos/seed/soc2/300/300",
-        "https://picsum.photos/seed/soc3/300/300",
-        "https://picsum.photos/seed/soc4/300/300",
-      ],
-    },
-  ];
+  useEffect(() => {
+    const works = JSON.parse(localStorage.getItem("garis-works") || "[]");
+    const ownerName = designer.name;
+
+    // Ambil karya milik desainer ini
+    const myWorks = works.filter((w: any) => w.owner === ownerName);
+
+    // Kelompokkan berdasarkan folder
+    const folderMap: Record<string, string[]> = {};
+    myWorks.forEach((w: any) => {
+      if (!folderMap[w.folder]) folderMap[w.folder] = [];
+      folderMap[w.folder].push(w.image);
+    });
+
+    // Jika tidak ada karya, tampilkan folder default kosong
+    const defaultFolders = ["3D Furniture", "Ilustrasi", "Logo", "Social Media"];
+    const result = Object.keys(folderMap).length > 0
+      ? Object.entries(folderMap).map(([name, photos]) => ({ name, photos }))
+      : defaultFolders.map((name) => ({ name, photos: [] }));
+
+    setFolders(result);
+  }, [designer.name]);
 
   return (
     <div>
@@ -76,22 +64,29 @@ export default function DesignerPage() {
               overflow: "hidden",
               boxShadow: "0 4px 12px rgba(0,0,0,0.25)"
             }}>
-              {/* Grid foto 2x2 seperti Instagram */}
               <div style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 gap: "2px",
                 height: "180px",
-                background: "#ddd"
+                background: "#e5e5e5"
               }}>
-                {folder.photos.slice(0, 4).map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ))}
+                {folder.photos.length > 0 ? (
+                  folder.photos.slice(0, 4).map((src, i) => (
+                    <img key={i} src={src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ))
+                ) : (
+                  <div style={{
+                    gridColumn: "1 / -1",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#888",
+                    fontSize: "0.875rem"
+                  }}>
+                    Belum ada karya
+                  </div>
+                )}
               </div>
               <div style={{ padding: "0.875rem 1rem", color: "#1A1A1A", fontWeight: 600 }}>
                 📁 {folder.name}

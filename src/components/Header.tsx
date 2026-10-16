@@ -63,18 +63,32 @@ export default function Header() {
             </div>
 
             {loggedIn && (
-              <Link href="/upload" style={{
-                background: "transparent",
-                color: "#FF6B00",
-                padding: "8px 16px",
-                borderRadius: "9999px",
-                border: "1px solid #FF6B00",
-                fontWeight: 600,
-                textDecoration: "none",
-                fontSize: "0.875rem"
-              }}>
-                {t.upload}
-              </Link>
+              <>
+                <Link href="/profile" style={{
+                  background: "transparent",
+                  color: "#F5F0E8",
+                  padding: "8px 16px",
+                  borderRadius: "9999px",
+                  border: "1px solid rgba(255,255,255,0.2)",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  fontSize: "0.875rem"
+                }}>
+                  Profil
+                </Link>
+                <Link href="/upload" style={{
+                  background: "transparent",
+                  color: "#FF6B00",
+                  padding: "8px 16px",
+                  borderRadius: "9999px",
+                  border: "1px solid #FF6B00",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  fontSize: "0.875rem"
+                }}>
+                  {t.upload}
+                </Link>
+              </>
             )}
 
             {loggedIn ? (

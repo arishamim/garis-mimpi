@@ -230,6 +230,7 @@ const statLabel: React.CSSProperties = { display: "block", fontSize: "0.8rem", c
 const statValue: React.CSSProperties = { display: "block", fontSize: "1.8rem", fontWeight: 900, letterSpacing: "-0.04em", overflowWrap: "anywhere" };
 const filterRow: React.CSSProperties = { display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" };
 const selectStyle: React.CSSProperties = { padding: "0.65rem 0.85rem", borderRadius: "0.7rem", border: "1px solid rgba(255,255,255,0.18)", background: "#171717", color: "#F5F0E8" };
+const listStyle: React.CSSProperties = { display: "flex", flexDirection: "column", gap: "0.25rem" };
 const invoiceCard: React.CSSProperties = { border: "1px solid rgba(255,255,255,0.13)", background: "#171717", borderRadius: "1rem", padding: "1.15rem", marginBottom: "0.9rem" };
 const invoiceTop: React.CSSProperties = { display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" };
 const statusPill: React.CSSProperties = { borderRadius: "999px", padding: "0.45rem 0.7rem", fontSize: "0.78rem", fontWeight: 800 };

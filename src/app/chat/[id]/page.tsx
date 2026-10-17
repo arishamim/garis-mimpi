@@ -40,6 +40,23 @@ const money = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const invoiceStatusLabel: Record<string, string> = {
+  pending: "Menunggu pembayaran",
+  awaiting_payment: "Menunggu pembayaran",
+  paid: "Sudah dibayar",
+  in_progress: "Sedang dikerjakan",
+  revision: "Dalam revisi",
+  completed: "Selesai",
+  disputed: "Dalam sengketa",
+  cancelled: "Dibatalkan",
+};
+
+const invoiceStatusColor = (status: string) => {
+  if (status === "completed" || status === "paid") return "#86efac";
+  if (status === "cancelled" || status === "disputed") return "#fca5a5";
+  return "#fdba74";
+};
+
 const boxStyle: React.CSSProperties = {
   background: "#1A1A1A",
   borderRadius: "1rem",
@@ -256,8 +273,8 @@ export default function ChatPage() {
     const parsedPrice = Number(price);
     const parsedRevisions = Number(revisions);
 
-    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setNotice("Masukkan harga yang valid dan lebih besar dari nol.");
+    if (!Number.isSafeInteger(parsedPrice) || parsedPrice <= 0) {
+      setNotice("Masukkan harga dalam Rupiah berupa bilangan bulat yang lebih besar dari nol.");
       return;
     }
     if (!Number.isInteger(parsedRevisions) || parsedRevisions < 0 || parsedRevisions > 100) {
@@ -302,9 +319,18 @@ export default function ChatPage() {
     setRevisions("2");
     setNotes("");
     setShowInvoice(false);
-    setNotice("Tagihan tersimpan dengan ID " + invoice.id + ". Pembayaran belum dilakukan.");
-    await loadConversationData(conversation.id);
-    setBusy(false);
+    setNotice("Tagihan berhasil disimpan. ID: " + invoice.id + ". Pembayaran belum dilakukan.");
+
+    try {
+      await loadConversationData(conversation.id);
+    } catch (loadError) {
+      setNotice(
+        "Tagihan berhasil disimpan, tetapi daftar tagihan gagal dimuat ulang. Muat ulang halaman untuk melihatnya. " +
+        (loadError instanceof Error ? loadError.message : "")
+      );
+    } finally {
+      setBusy(false);
+    }
   };
 
   const markStarsLocally = (n: number) => {
@@ -426,20 +452,64 @@ export default function ChatPage() {
         <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.75rem" }}>Tagihan</h2>
         {invoices.length === 0 ? (
           <p style={{ opacity: 0.65 }}>Belum ada tagihan.</p>
-        ) : invoices.map((invoice) => (
-          <div key={invoice.id} style={{ borderTop: "1px solid #333", padding: "0.9rem 0" }}>
-            <p style={{ fontSize: "1.15rem", fontWeight: 800, color: "#FF6B00" }}>{money(Number(invoice.price))}</p>
-            <p>Revisi: {invoice.revisions}x</p>
-            <p>Catatan: {invoice.notes || "-"}</p>
-            <p>Status: {invoice.status}</p>
-            <p>Fee platform: {invoice.platform_fee_percent}%</p>
-            {isBuyer && invoice.status === "pending" && (
-              <p style={{ marginTop: "0.5rem", opacity: 0.7, fontSize: "0.85rem" }}>
-                Menunggu pembayaran. Integrasi pembayaran nyata belum aktif.
+        ) : invoices.map((invoice) => {
+          const amount = Number(invoice.price);
+          const feePercent = Number(invoice.platform_fee_percent);
+          const estimatedFee = Math.round((amount * feePercent) / 100);
+          const estimatedDesignerNet = amount - estimatedFee;
+
+          return (
+            <div key={invoice.id} style={{ borderTop: "1px solid #333", padding: "1rem 0" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
+                <div>
+                  <p style={{ fontSize: "1.2rem", fontWeight: 800, color: "#FF6B00" }}>{money(amount)}</p>
+                  <p style={{ opacity: 0.55, fontSize: "0.75rem", marginTop: "0.25rem" }}>
+                    Dibuat {new Date(invoice.created_at).toLocaleString("id-ID")}
+                  </p>
+                </div>
+                <span style={{
+                  display: "inline-block",
+                  padding: "0.35rem 0.65rem",
+                  borderRadius: "9999px",
+                  background: "rgba(255,255,255,0.06)",
+                  color: invoiceStatusColor(invoice.status),
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                }}>
+                  {invoiceStatusLabel[invoice.status] || invoice.status}
+                </span>
+              </div>
+
+              <div style={{ marginTop: "0.85rem", display: "grid", gap: "0.4rem" }}>
+                <p>Jumlah revisi: <strong>{invoice.revisions}x</strong></p>
+                <p style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>Catatan pekerjaan: {invoice.notes || "-"}</p>
+              </div>
+
+              <div style={{ marginTop: "0.85rem", padding: "0.75rem", borderRadius: "0.65rem", background: "#111", fontSize: "0.9rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+                  <span>Harga pekerjaan</span><strong>{money(amount)}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", marginTop: "0.4rem" }}>
+                  <span>Fee platform ({feePercent}%)</span><span>{money(estimatedFee)}</span>
+                </div>
+                {isDesigner && (
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", marginTop: "0.4rem", borderTop: "1px solid #333", paddingTop: "0.5rem" }}>
+                    <span>Perkiraan bersih desainer*</span><strong>{money(estimatedDesignerNet)}</strong>
+                  </div>
+                )}
+              </div>
+
+              {isBuyer && (invoice.status === "pending" || invoice.status === "awaiting_payment") && (
+                <p style={{ marginTop: "0.75rem", opacity: 0.75, fontSize: "0.85rem", lineHeight: 1.5 }}>
+                  Tagihan ini belum dibayar. Pembayaran online dan escrow belum aktif; jangan mengirim uang berdasarkan status pada halaman ini.
+                </p>
+              )}
+              <p style={{ marginTop: "0.65rem", opacity: 0.45, fontSize: "0.72rem", overflowWrap: "anywhere" }}>
+                ID tagihan: {invoice.id}
               </p>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
       </section>
 
       {isBuyer && latestInvoice?.status === "completed" && stars === 0 && (
@@ -455,7 +525,10 @@ export default function ChatPage() {
 
       {notice && <p role="status" style={{ marginTop: "1rem", color: notice.startsWith("Gagal") ? "#ff8c8c" : "#FF6B00", lineHeight: 1.6 }}>{notice}</p>}
 
-      <p style={{ marginTop: "1.25rem", opacity: 0.5, fontSize: "0.8rem" }}>
+      <p style={{ marginTop: "1.25rem", opacity: 0.5, fontSize: "0.8rem", lineHeight: 1.5 }}>
+        *Perkiraan bersih desainer mengasumsikan fee platform dipotong dari harga pekerjaan, bukan ditambahkan ke tagihan pembeli. Aturan fee dan pembayaran final perlu dikonfirmasi sebelum integrasi pembayaran.
+      </p>
+      <p style={{ marginTop: "0.5rem", opacity: 0.5, fontSize: "0.8rem" }}>
         Pembayaran dan escrow belum diaktifkan. Jangan mengirim uang berdasarkan status di halaman ini.
       </p>
     </div>

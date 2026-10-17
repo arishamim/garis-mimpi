@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
+import { supabase } from "@/lib/supabase";
 import { useState } from "react";
 
 export default function Header() {
@@ -34,6 +35,21 @@ export default function Header() {
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "Gagal mengirim tautan masuk.");
     } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setBusy(true);
+    setNotice("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) throw error;
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "Gagal memulai login Google.");
       setBusy(false);
     }
   };
@@ -116,8 +132,17 @@ export default function Header() {
               autoComplete="email"
               style={inputStyle}
             />
-            <button onClick={() => void handleLogin()} disabled={busy} style={{ ...primaryStyle, width: "100%", marginTop: "0.75rem", opacity: busy ? 0.65 : 1 }}>
-              {busy ? "Mengirim..." : "Kirim Magic Link"}
+            <button onClick={() => void handleGoogleLogin()} disabled={busy} style={{ ...googleButtonStyle, width: "100%", marginTop: "0.25rem", opacity: busy ? 0.65 : 1 }}>
+              <span aria-hidden="true" style={{ fontWeight: 800, fontSize: "1rem" }}>G</span>
+              {busy ? "Mengalihkan ke Google..." : "Lanjutkan dengan Google"}
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1rem 0", opacity: 0.55, fontSize: "0.75rem" }}>
+              <span style={{ height: "1px", background: "currentColor", flex: 1 }} />
+              <span>ATAU EMAIL</span>
+              <span style={{ height: "1px", background: "currentColor", flex: 1 }} />
+            </div>
+            <button onClick={() => void handleLogin()} disabled={busy} style={{ ...primaryStyle, width: "100%", marginTop: "0.25rem", opacity: busy ? 0.65 : 1 }}>
+              {busy ? "Memproses..." : "Kirim Magic Link"}
             </button>
             {notice && <p role="status" style={{ marginTop: "0.75rem", color: notice.includes("Gagal") || notice.includes("tidak valid") ? "#ff8c8c" : "#FF6B00", lineHeight: 1.5 }}>{notice}</p>}
             <button onClick={() => setShowLogin(false)} style={{ ...navStyle, width: "100%", marginTop: "0.75rem" }}>Tutup</button>
@@ -132,6 +157,12 @@ const navStyle: React.CSSProperties = {
   background: "transparent", color: "#F5F0E8", padding: "8px 14px",
   borderRadius: "9999px", border: "1px solid rgba(255,255,255,0.2)",
   fontWeight: 600, textDecoration: "none", fontSize: "0.875rem", cursor: "pointer"
+};
+
+const googleButtonStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem",
+  background: "#FFFFFF", color: "#202124", padding: "0.75rem 1rem",
+  borderRadius: "9999px", border: "1px solid #DADCE0", fontWeight: 700, cursor: "pointer"
 };
 
 const primaryStyle: React.CSSProperties = {

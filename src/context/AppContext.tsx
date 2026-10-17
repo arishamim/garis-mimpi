@@ -1,44 +1,101 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
 
 type Lang = "id" | "en";
 
 type AppContextType = {
   lang: Lang;
-  setLang: (l: Lang) => void;
+  setLang: (lang: Lang) => void;
   loggedIn: boolean;
   userEmail: string | null;
-  login: (email: string) => void;
-  logout: () => void;
+  user: User | null;
+  authLoading: boolean;
+  login: (email: string) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>("id");
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
-  const login = (email: string) => {
-    setUserEmail(email);
-    setLoggedIn(true);
+  useEffect(() => {
+    let mounted = true;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setAuthLoading(false);
+      }
+    });
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!mounted) return;
+      if (error) console.error("Gagal memeriksa sesi:", error.message);
+      setUser(data.session?.user ?? null);
+      setAuthLoading(false);
+    }).catch((error: unknown) => {
+      console.error("Gagal memuat sesi:", error);
+      if (mounted) setAuthLoading(false);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const login = async (email: string) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      throw new Error("Masukkan alamat email yang valid.");
+    }
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    if (error) throw error;
   };
 
-  const logout = () => {
-    setUserEmail(null);
-    setLoggedIn(false);
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    setUser(null);
   };
 
-  return (
-    <AppContext.Provider value={{ lang, setLang, loggedIn, userEmail, login, logout }}>
-      {children}
-    </AppContext.Provider>
-  );
+  const value: AppContextType = {
+    lang,
+    setLang,
+    loggedIn: !!user,
+    userEmail: user?.email ?? null,
+    user,
+    authLoading,
+    login,
+    logout,
+  };
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error("useApp must be used inside AppProvider");
-  return ctx;
+  const context = useContext(AppContext);
+  if (!context) throw new Error("useApp must be used inside AppProvider");
+  return context;
 }

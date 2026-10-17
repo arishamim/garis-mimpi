@@ -84,6 +84,7 @@ export default function Header() {
             {loggedIn && (
               <>
                 <Link href="/profile" style={navStyle}>Profil</Link>
+                <Link href="/pesanan" style={navStyle}>Pesanan</Link>
                 <Link href="/upload" style={{ ...navStyle, color: "#FF6B00", borderColor: "#FF6B00" }}>{t.upload}</Link>
                 <span style={{ fontSize: "0.8rem", opacity: 0.65, maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis" }}>{userEmail}</span>
                 <button onClick={handleLogout} style={primaryStyle}>{t.logout}</button>

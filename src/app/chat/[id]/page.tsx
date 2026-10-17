@@ -80,7 +80,6 @@ export default function ChatPage() {
         ))}
       </div>
 
-      {/* Input pesan */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
         <input
           value={text}
@@ -94,7 +93,6 @@ export default function ChatPage() {
         </button>
       </div>
 
-      {/* Tombol desainer buat tagihan */}
       {!invoiceSent && (
         <button onClick={() => setShowInvoice(!showInvoice)} style={{ background: "transparent", color: "#FF6B00", border: "1px solid #FF6B00", padding: "0.5rem 1rem", borderRadius: "9999px", marginBottom: "1rem" }}>
           Buat Tagihan
@@ -110,14 +108,12 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Tombol bayar (muncul setelah tagihan) */}
       {invoiceSent && !paid && (
         <button onClick={pay} style={{ background: "#FF6B00", color: "#000", padding: "0.75rem 1.5rem", borderRadius: "9999px", border: "none", fontWeight: 700, marginRight: "0.5rem" }}>
           Bayar Sekarang
         </button>
       )}
 
-      {/* Bintang setelah bayar */}
       {paid && stars === 0 && (
         <div style={{ marginTop: "1rem" }}>
           <p style={{ marginBottom: "0.5rem" }}>Beri bintang (1–3):</p>

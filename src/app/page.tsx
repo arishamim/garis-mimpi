@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { designers as mockDesigners, type Designer } from "@/data/mock";
+import type { Designer } from "@/data/mock";
 import DesignerCard from "@/components/DesignerCard";
 import { useApp } from "@/context/AppContext";
 import { supabase } from "@/lib/supabase";
@@ -12,7 +12,7 @@ type StarRow = { designer_id: string; points: number };
 
 export default function Home() {
   const { lang } = useApp();
-  const [allDesigners, setAllDesigners] = useState<Designer[]>(mockDesigners);
+  const [allDesigners, setAllDesigners] = useState<Designer[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -47,16 +47,13 @@ export default function Home() {
             };
           }
           byOwner[owner].photos.push(work.image_url);
-          // Keep work-level stars only as a fallback if this owner has no linked profile.
-          const matchingProfile = Array.from(profileByUser.values()).find((profile) => profile.username === owner);
-          if (!matchingProfile) byOwner[owner].stars += Number(work.stars || 0);
         });
       }
 
       // Include registered designers with awarded stars even if they have not uploaded a work yet.
       profileByUser.forEach((profile) => {
         const starCount = totals[profile.user_id] ?? 0;
-        if (starCount > 0 && !byOwner[profile.username]) {
+        if (!byOwner[profile.username]) {
           byOwner[profile.username] = {
             id: "user-" + profile.username,
             name: profile.full_name?.trim() || profile.username,
@@ -68,10 +65,8 @@ export default function Home() {
 
       if (!active) return;
       const uploaded = Object.values(byOwner);
-      const combined = [...uploaded, ...mockDesigners];
-      // Real profile cards replace a demo card with the same username/id, avoiding duplicates.
-      const realIds = new Set(uploaded.map((designer) => designer.id));
-      setAllDesigners(combined.filter((designer) => !realIds.has(designer.id) || uploaded.includes(designer)));
+      // Show only registered accounts. Stars come exclusively from the admin/mission ledger.
+      setAllDesigners(uploaded);
     }
 
     void loadWorksAndStars();

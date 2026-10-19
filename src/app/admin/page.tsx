@@ -43,7 +43,7 @@ export default function AdminMasterPage() {
       supabase.from("gm_profiles").select("user_id, username, full_name").order("username"),
       supabase.from("gm_missions").select("id, title, description, period, stars, active, created_at").order("created_at", { ascending: false }),
       supabase.from("gm_mission_completions").select("id, mission_id, designer_id, period_key, status, submitted_at").order("submitted_at", { ascending: false }),
-      supabase.from("gm_star_ledger").select("id, designer_id, points, reason, source, created_at").order("created_at", { ascending: false }).limit(100),
+      supabase.from("gm_star_ledger").select("id, designer_id, points, reason, source, created_at").order("created_at", { ascending: false }),
     ]);
     const firstError = profileResult.error || missionResult.error || completionResult.error || ledgerResult.error;
     if (firstError) setError("Sebagian data belum bisa dimuat. Pastikan skrip SQL Admin Master sudah dijalankan di Supabase. Detail: " + firstError.message);
